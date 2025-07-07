@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Como Ser uma Pessoa Interessante</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Harmony (Vibrant Orange/Purple Tones with Neutral Grays) -->
+    <!-- Application Structure Plan: A single-page application designed as an interactive guide. It starts with a bold header, followed by a main section with clickable tabs for each of the 5 pillars of being an interesting person. This allows for non-linear exploration. Below, a self-assessment quiz engages the user directly, making them reflect on the content. The results are displayed both as text and a dynamic donut chart. This structure transforms the static carousel content into an engaging, actionable experience, promoting deeper understanding and self-reflection. -->
+    <!-- Visualization & Content Choices: Report Info: 5 steps to be interesting. Goal: Inform, Inspire, Engage. Viz/Method: 1) Interactive Tabs (HTML/CSS/JS) for the 5 pillars to organize content cleanly. 2) Self-Assessment Quiz (HTML Form + JS) to personalize the experience. 3) Donut Chart (Chart.js/Canvas) to visually represent the user's self-assessment score. Justification: Tabs prevent content overload. The quiz and chart provide a tangible, interactive takeaway that a static text block cannot, directly fulfilling the goal of engagement and making the advice feel more personal and actionable. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .chart-container { position: relative; width: 100%; max-width: 320px; margin-left: auto; margin-right: auto; height: 320px; }
+        .tab-active { background-color: #8B5CF6; color: white; }
+        .tab-inactive { background-color: #E5E7EB; color: #374151; }
+        .content-visible { display: block; }
+        .content-hidden { display: none; }
+        .gradient-bg { background: linear-gradient(135deg, #F97316, #8B5CF6); }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div id="app" class="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
+
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text gradient-bg mb-2">Você é uma Pessoa Interessante?</h1>
+            <p class="text-lg text-gray-600">Descubra como atrair, impactar e conquistar melhores resultados em 5 passos!</p>
+        </header>
+
+        <main>
+            <section id="pilares" class="mb-12 bg-white p-6 rounded-2xl shadow-lg">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-violet-600">Os 5 Pilares do Magnetismo Pessoal</h2>
+                    <p class="text-gray-500 mt-1">Navegue pelos pilares para construir sua melhor versão. Clique em cada um para revelar seu conteúdo.</p>
+                </div>
+
+                <div id="tabs-container" class="flex flex-wrap justify-center gap-2 mb-6">
+                </div>
+
+                <div id="content-container" class="p-4 bg-gray-50 rounded-lg min-h-[150px]">
+                </div>
+            </section>
+
+            <section id="autoavaliacao" class="mb-12 bg-white p-6 rounded-2xl shadow-lg">
+                 <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-orange-500">Autoavaliação Interativa</h2>
+                    <p class="text-gray-500 mt-1">Responda com sinceridade para descobrir seus pontos fortes e onde você pode crescer.</p>
+                </div>
+                <form id="quiz-form">
+                    <div id="quiz-questions" class="space-y-6"></div>
+                    <div class="text-center mt-8">
+                        <button type="submit" class="bg-violet-600 text-white font-bold py-3 px-8 rounded-full hover:bg-violet-700 transition-all duration-300 transform hover:scale-105">
+                            Ver Meu Resultado 🚀
+                        </button>
+                    </div>
+                </form>
+            </section>
+            
+            <section id="resultado" class="content-hidden bg-white p-6 rounded-2xl shadow-lg">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-green-500">Seu Potencial de Crescimento</h2>
+                    <p class="text-gray-500 mt-1">Veja seu resultado e lembre-se: todo dia é uma chance para evoluir.</p>
+                </div>
+                <div class="flex flex-col md:flex-row items-center gap-6">
+                    <div class="md:w-1/2">
+                         <div class="chart-container">
+                            <canvas id="resultChart"></canvas>
+                        </div>
+                    </div>
+                    <div id="result-text" class="md:w-1/2 text-center md:text-left">
+                    </div>
+                </div>
+            </section>
+
+        </main>
+        
+        <footer class="text-center mt-12 text-gray-500">
+            <p>Continue sua jornada de crescimento!</p>
+            <div class="flex justify-center gap-4 mt-2">
+                <span>#PessoaInteressante</span>
+                <span>#CrescimentoPessoal</span>
+                <span>#EmpreendedorismoFeminino</span>
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const stepsData = [
+                {
+                    id: 1,
+                    emoji: '1️⃣',
+                    title: 'SEJA VIVA!',
+                    short_title: 'Vitalidade',
+                    content: 'Uma pessoa interessante exsuda energia e magnetismo. 💥 Gerenciar sua vitalidade — física, mental e emocional — é o primeiro passo para atrair a atenção e o interesse genuíno das pessoas ao seu redor.',
+                    question: 'Eu gerencio ativamente minha energia (sono, alimentação, pausas) para me sentir com vitalidade durante o dia.'
+                },
+                {
+                    id: 2,
+                    emoji: '2️⃣',
+                    title: 'VALORIZE O OUTRO!',
+                    short_title: 'Comunidade',
+                    content: 'Ser interessante é, fundamentalmente, interessar-se pelos outros. 🤝 Pratique a escuta ativa, faça perguntas e se conecte com as necessidades da sua comunidade. Servir e engajar gera conexões profundas.',
+                    question: 'Em conversas, eu me esforço mais para escutar e entender do que para falar sobre mim.'
+                },
+                {
+                    id: 3,
+                    emoji: '3️⃣',
+                    title: 'ABRACE SUA HISTÓRIA!',
+                    short_title: 'Sua História',
+                    content: 'Sua jornada, com todos os seus altos e baixos, te torna uma pessoa única. 🌟 Viver em paz com seu passado e usar suas experiências como força te dá uma autenticidade que é naturalmente cativante.',
+                    question: 'Eu vejo minha história de vida, incluindo os desafios, como uma fonte de força e singularidade.'
+                },
+                {
+                    id: 4,
+                    emoji: '4️⃣',
+                    title: 'VIVA NA REALIDADE!',
+                    short_title: 'Realidade',
+                    content: 'Pessoas interessantes vivem com os pés no chão. Elas buscam a verdade, definem metas realistas e se comprometem com o crescimento contínuo. 🌍 Resultados reais nascem de ações consistentes na realidade.',
+                    question: 'Eu defino metas realistas para mim e trabalho de forma consistente para alcançá-las.'
+                },
+                {
+                    id: 5,
+                    emoji: '5️⃣',
+                    title: 'CULTIVE A CURIOSIDADE!',
+                    short_title: 'Curiosidade',
+                    content: 'A curiosidade é o motor do crescimento e da conversa. 🤔 Pessoas interessantes são aprendizes eternas. Elas leem, exploram novos hobbies e fazem perguntas. O que você aprendeu de novo hoje?',
+                    question: 'Eu busco ativamente aprender coisas novas ou explorar novos interesses toda semana.'
+                }
+            ];
+
+            const tabsContainer = document.getElementById('tabs-container');
+            const contentContainer = document.getElementById('content-container');
+            const quizQuestionsContainer = document.getElementById('quiz-questions');
+            const quizForm = document.getElementById('quiz-form');
+            const resultadoSection = document.getElementById('resultado');
+            const resultTextContainer = document.getElementById('result-text');
+
+            let activeTabId = 1;
+            let chartInstance = null;
+            
+            function renderTabs() {
+                tabsContainer.innerHTML = '';
+                stepsData.forEach(step => {
+                    const button = document.createElement('button');
+                    button.dataset.id = step.id;
+                    button.className = `py-2 px-4 rounded-full font-semibold transition-all duration-300 ${step.id === activeTabId ? 'tab-active' : 'tab-inactive'}`;
+                    button.textContent = `${step.emoji} ${step.short_title}`;
+                    tabsContainer.appendChild(button);
+                });
+            }
+            
+            function renderContent() {
+                const activeStep = stepsData.find(step => step.id === activeTabId);
+                if (activeStep) {
+                    contentContainer.innerHTML = `
+                        <h3 class="font-bold text-xl mb-2 text-violet-600">${activeStep.title}</h3>
+                        <p class="text-gray-600">${activeStep.content}</p>
+                    `;
+                }
+            }
+            
+            function renderQuiz() {
+                quizQuestionsContainer.innerHTML = '';
+                stepsData.forEach(step => {
+                    const questionDiv = document.createElement('div');
+                    questionDiv.className = 'border p-4 rounded-lg bg-gray-50';
+                    questionDiv.innerHTML = `
+                        <p class="font-semibold mb-3">${step.emoji} ${step.question}</p>
+                        <div class="flex flex-wrap gap-x-6 gap-y-2">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="q${step.id}" value="2" class="form-radio text-violet-600" required>
+                                <span>Sempre</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="q${step.id}" value="1" class="form-radio text-violet-600">
+                                <span>Às vezes</span>
+                            </label>
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="q${step.id}" value="0" class="form-radio text-violet-600">
+                                <span>Raramente</span>
+                            </label>
+                        </div>
+                    `;
+                    quizQuestionsContainer.appendChild(questionDiv);
+                });
+            }
+
+            tabsContainer.addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    activeTabId = parseInt(e.target.dataset.id);
+                    renderTabs();
+                    renderContent();
+                }
+            });
+            
+            quizForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = new FormData(quizForm);
+                let score = 0;
+                for (let value of formData.values()) {
+                    score += parseInt(value);
+                }
+                
+                const maxScore = stepsData.length * 2;
+                
+                let resultMessage = '';
+                let resultTitle = '';
+                
+                if (score <= 4) {
+                    resultTitle = 'Ponto de Partida 🌱';
+                    resultMessage = 'Você tem uma base sólida e uma incrível oportunidade de crescimento! Comece escolhendo um dos pilares para focar nesta semana. Pequenos passos geram grandes transformações.';
+                } else if (score <= 7) {
+                    resultTitle = 'Em Pleno Desenvolvimento 🚀';
+                    resultMessage = 'Você já pratica muitos hábitos de uma pessoa magnética! Continue cultivando esses pontos e identifique as áreas onde pode se aprofundar. Você está no caminho certo para brilhar ainda mais.';
+                } else {
+                    resultTitle = 'Pura Inspiração! 🌟';
+                    resultMessage = 'Uau! Sua energia e autenticidade já são contagiantes. Você é uma inspiração. Continue aprimorando e compartilhando sua luz com o mundo. Seu maior desafio é continuar se reinventando.';
+                }
+
+                resultTextContainer.innerHTML = `
+                    <h3 class="text-xl font-bold mb-2">${resultTitle}</h3>
+                    <p class="text-gray-600 mb-4">${resultMessage}</p>
+                    <p class="font-semibold">Sua pontuação: <span class="text-violet-600 font-bold text-lg">${score}</span> de ${maxScore} pontos.</p>
+                `;
+                
+                resultadoSection.classList.remove('content-hidden');
+                resultadoSection.scrollIntoView({ behavior: 'smooth' });
+
+                renderChart(score, maxScore);
+            });
+            
+            function renderChart(score, maxScore){
+                const ctx = document.getElementById('resultChart').getContext('2d');
+                if(chartInstance) {
+                    chartInstance.destroy();
+                }
+                chartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Sua Pontuação', 'Potencial de Crescimento'],
+                        datasets: [{
+                            data: [score, maxScore - score],
+                            backgroundColor: ['#8B5CF6', '#FDBA74'],
+                            borderColor: ['#ffffff', '#ffffff'],
+                            borderWidth: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20
+                                }
+                            },
+                            tooltip: {
+                                enabled: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            renderTabs();
+            renderContent();
+            renderQuiz();
+        });
+    </script>
+</body>
+</html>
